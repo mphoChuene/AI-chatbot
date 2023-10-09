@@ -1,60 +1,88 @@
-import React, { useState } from 'react'; // Uncomment this line to import useState
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 const App = () => {
   const [inputValue, setInputValue] = useState(""); // State to capture input value
+  const [messages, setMessages] = useState([]); // State to store chat messages
+  const [response, setResponse] = useState("");
 
-  const getMessages = async () => {
-    const options = {
-      method: "POST",
-      body: JSON.stringify({
-        message: inputValue, // Use the captured input value
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
+  };
 
+  const handleChatRequest = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:8000/completions",
-        options
-      );
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: inputValue }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+
       const data = await response.json();
-      console.log(data);
+      const newMessages = [...messages, { text: inputValue, type: "user" }, { text: data.response, type: "bot" }];
+      setMessages(newMessages);
+      setInputValue("");
     } catch (error) {
-      console.error(error);
+      console.error("Error:", error);
     }
   };
+
+  useEffect(() => {
+    // Scroll to the bottom of the chat when messages change
+    const chatContainer = document.querySelector(".chat-container");
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }, [messages]);
 
   return (
     <div className="app">
       <section className="side-bar">
-        <button onClick={getMessages}>Create chat</button> {/* Add onClick handler */}
-        <ul className="history">
-          <li>Mpho</li>
-        </ul>
-        <nav>built with love by Mpho</nav>
+        <button onClick={handleChatRequest}>Ask Question</button>
+        <nav>built with love by Limpopo-Ai Cohort</nav>
       </section>
       <section className="main">
-        <h1>Smart-Bot</h1>
-        <ul className="feed"></ul>
-        <div className="bottom-section">
+        <h1>Chat Guru</h1>
+        <div className="chat-container">
+          <div className="chat-feed">
+            {/* Map out and display chat messages */}
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`chat-message ${message.type === "user" ? "user" : "bot"}`}
+              >
+                {message.text}
+              </div>
+            ))}
+          </div>
           <div className="input-container">
-            <input type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} /> {/* Capture input value */}
-            <div id="submit" onClick={getMessages}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={handleInputChange}
+              placeholder="Type your question..."
+            />
+            <div id="submit" onClick={handleChatRequest}>
               ➢
             </div>
           </div>
-          <p className="info">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Culpa
-            deserunt aut assumenda ratione, laborum debitis nam enim inventore
-            necessitatibus provident fuga pariatur facilis sapiente commodi
-            architecto. Veniam alias vel sunt!
-          </p>
         </div>
+        <p className="info">
+         The chatbot can provide
+          answers to specific questions, as well as offer general information
+          about major events and figures in South African history. It is an
+          accessible and educational tool that aims to make South African
+ history.
+            It is an accessible and educational tool that aims to make South
+            African history more engaging and approachable for everyone.
+          </p>
       </section>
-    </div>
+        </div>
+
   );
 };
 

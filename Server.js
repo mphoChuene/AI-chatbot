@@ -1,15 +1,16 @@
-const PORT = 8000;
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch"; // Import fetch for Node.js
+import fetch from "node-fetch";
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-const API_KEY = "removed/but will be entered";
+const API_KEY = "kmaurPlmC1o6pggxuvKNT3BlbkFJTO1PWp4s3Rsd4Nez7wt3"; // Replace with your OpenAI API key
 
-app.post("/completions", async (req, res) => {
+app.post("/api/chat", async (req, res) => {
+  const { message } = req.body;
+
   const options = {
     method: "POST",
     headers: {
@@ -21,24 +22,25 @@ app.post("/completions", async (req, res) => {
       messages: [
         {
           role: "user",
-          content: "how are you?",
+          content: message, // Use the user's message from the request
         },
       ],
-      max_tokens: 100,
     }),
   };
 
   try {
     const response = await fetch(
-      "https://api.openai.com/v1/chat/completions",
+      "https://api.openai.com/v1/engines/gpt-3.5-turbo/completions",
       options
     );
+
     const data = await response.json();
-    res.send(data);
+    res.json(data);
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred");
   }
 });
 
-app.listen(PORT, () => console.log("Your server is running on PORT " + PORT));
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => console.log(`Your server is running on PORT ${PORT}`));
